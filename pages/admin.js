@@ -18,23 +18,23 @@ import {
 import axios from 'axios';
 
 let panelData = {
-  Name: 'SuperOffice Example App 2',
+  Name: 'NextJS Sample',
   OnCentral: true,
   OnSalesMarketingPocket: false,
   OnSalesMarketingWeb: true,
   OnSatellite: false,
   OnTravel: false,
-  ProgId: 'superoffice-example-app-2',
+  ProgId: 'nextjs-sample',
   ShowInAddressBar: false,
   ShowInMenuBar: false,
   ShowInStatusBar: false,
   ShowInToolBar: false,
   TableRight: null,
-  Tooltip: 'SuperOffice Example App',
-  Url: 'http://localhost:3000/panel?uctx=<uctx>&cuid=<cuid>&atid=<atid>&said=<said>&prid=<prid>',
+  Tooltip: 'NextJS Sample',
+  Url: 'https://localhost:3000/panel?uctx=<uctx>&cuid=<cuid>&atid=<atid>&said=<said>&prid=<prid>',
   UrlEncoding: 'Unknown',
   VisibleIn: 'BrowserPanel',
-  WindowName: 'SuperOfficeExampleApp2',
+  WindowName: 'nextjsapp',
 };
 
 function Admin({ isInstalled, webPanelId }) {
@@ -169,7 +169,7 @@ function Admin({ isInstalled, webPanelId }) {
         .get('/api/superoffice/List/WebPanel/Items')
         .then((res) => {
           const isInstalled = res.data.filter(
-            (item) => item.ProgId === 'superoffice-example-app-2'
+            (item) => item.ProgId === panelData.ProgId
           );
           setPanel({
             isInstalled: isInstalled.length > 0 && !isInstalled[0].Deleted,
