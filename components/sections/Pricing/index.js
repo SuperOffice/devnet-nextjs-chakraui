@@ -67,7 +67,7 @@ const Pricing = () => {
             price={'?'}
             features={[
               'Sapiente libero doloribus modi',
-              'Vel ipsa esse repudiandae',
+              'Vel ipsa esse repudiandae1',
               'Itaque cupiditate adipisci',
             ]}
             href="/login"
@@ -92,7 +92,7 @@ const Pricing = () => {
             features={[
               'Duis aute irure dolor',
               'Excepteur sint occaecat',
-              'Vel ipsa esse repudiandae',
+              'Vel ipsa esse repudiandae2',
             ]}
             href="/login"
           />

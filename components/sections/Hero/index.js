@@ -59,7 +59,7 @@ const Hero = () => {
               logo={<SampleLogo />}
               author="Dennis Pabst"
               company="Consultant"
-              image="https://media-exp1.licdn.com/dms/image/C4E03AQHnIxjYnw0CPw/profile-displayphoto-shrink_100_100/0/1615133686677?e=1622073600&v=beta&t=xanRSRmG_9G374bflCLOR2rlIUTWtLyGrOPghcJSsms"
+              image="https://avatars.githubusercontent.com/u/66716418?v=4"
             >
               &ldquo; At volutpat diam ut venenatis tellus. Sit amet consectetur
               adipiscing elit duis. Quis hendrerit dolor magna eget est. &rdquo;

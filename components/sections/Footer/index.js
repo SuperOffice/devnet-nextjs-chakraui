@@ -51,7 +51,7 @@ const Footer = () => (
             ))}
           </HStack>
           <Text mt="8" fontSize="sm">
-            Crafted with <Heart /> &amp; <Brain /> in <FlagGermany />
+            Crafted with Love
           </Text>
         </Box>
         <SimpleGrid

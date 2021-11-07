@@ -171,6 +171,7 @@ export default (req, res) => {
               //add more user data you want to persist in session - https://community.superoffice.com/documentation/sdk/SO.NetServer.Web.Services/html/v1User_GetCurrentPrincipal.htm
             })
             .catch((err) => {
+              console.log("Error getting principal.")
               console.log(err);
               session.user.fullname = 'User';
             });

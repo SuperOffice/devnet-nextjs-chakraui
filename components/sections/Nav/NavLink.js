@@ -12,13 +12,15 @@ import {
 const DesktopNavLink = (props) => {
   const { href, children, ...rest } = props;
   return (
+    <>
     <chakra.a
       fontWeight="semibold"
       color={mode('gray.600', 'gray.300')}
       {...rest}
     >
-      <Link href={href || '#'}>{children}</Link>
     </chakra.a>
+    <Link href={href || '#'}>{children}</Link>
+    </>
   );
 };
 

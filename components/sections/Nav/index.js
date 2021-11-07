@@ -24,6 +24,7 @@ const Nav = () => {
       bg={mode('white', 'gray.800')}
       w="100%"
       mb="16"
+      id="f"
       //position="sticky"
       //top="0"
       zIndex="9999"
