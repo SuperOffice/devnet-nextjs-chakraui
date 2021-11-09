@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { signIn, useSession } from 'next-auth/client';
+import { signIn, useSession } from 'next-auth/react';
 import Loader from '../components/ui/Loader';
 
 const PopUp = () => {

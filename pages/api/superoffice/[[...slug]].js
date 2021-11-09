@@ -1,31 +1,26 @@
-import { getToken } from 'next-auth/jwt';
 import { decrypt } from '../../../utils/crypto';
 import refreshAccessToken from '../../../utils/refreshAccessToken';
 import axios from 'axios';
+import { getToken } from 'next-auth/jwt';
 
 export default async (req, res) => {
   const token = await getToken({
     req,
-    encryption: true,
-    secret: process.env.NEXTAUTH_SECRET,
-    signingKey: process.env.NEXTAUTH_JWT_SIGNING_KEY,
-    encryptionKey: process.env.NEXTAUTH_JWT_ENCRYPTION_KEY,
+    secret: process.env.NEXTAUTH_JWT_SECRET,
   });
 
   if (!token) {
     return res.status(401).json({ status: 401, message: 'Unauthorized' });
   }
 
-  if (!token.admin && req.method !== 'get') {
+  if (!token.isAdmin && req.method !== 'get') {
     //allow only admins to POST, DELETE, PUT
     return res.status(403).json({ status: 403, message: 'Forbidden' });
   }
 
-  let accessToken = decrypt(
-    token.accessToken,
-    process.env.ACCESS_TOKEN_IV,
-    process.env.ACCESS_TOKEN_SECRET
-  );
+  // get access token, renew if required.
+
+  let accessToken = '';
 
   if (Date.now() >= token.accessTokenExpires) {
     const refreshToken = await refreshAccessToken(token);
@@ -36,7 +31,11 @@ export default async (req, res) => {
         .json({ status: 500, message: 'Internal Server Error' });
     }
 
-    accessToken = refreshToken.accessToken;
+    accessToken = decrypt(
+      refreshToken.accessToken,
+      process.env.ACCESS_TOKEN_IV,
+      process.env.ACCESS_TOKEN_SECRET
+    );
   }
 
   const path = req.url.replace('/api/superoffice', '');
@@ -44,11 +43,14 @@ export default async (req, res) => {
     return res.status(404).json({ status: 404, message: 'Not Found' });
   }
 
+  // TODO: make sure accessToken isn't empty string...
+
   await axios({
     method: req.method,
-    url: `https://${token.env}.superoffice.com/${token.ctx}/api/v1${path}`,
+    url: `${token.restUrl}v1${path}`,
     headers: {
       Authorization: `Bearer ${accessToken}`,
+      Accept: 'application/json'
     },
     data: req.body,
   })

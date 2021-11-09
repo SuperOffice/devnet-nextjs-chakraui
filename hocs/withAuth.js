@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { signIn, useSession } from 'next-auth/client';
+import { signIn, useSession } from 'next-auth/react';
 
 const useBrowser = () => {
   if (typeof window === 'undefined') return null;
@@ -39,7 +39,11 @@ const withAuth = (Component, options) => {
   return (props) => {
     const browser = useBrowser();
 
-    const [session, loading] = useSession();
+    // https://next-auth.js.org/getting-started/upgrade-v4#usesession-hook
+    //const [session, loading] = useSession();
+
+    const { data: session, status } = useSession()
+    const loading = status === "loading"
 
     const [checking, setChecking] = useState(true);
     const [hasCookieAccess, setHasCookieAccess] = useState(false);
@@ -125,6 +129,8 @@ const withAuth = (Component, options) => {
         return <button onClick={handleLogin}>Login</button>;
       }
     }
+
+    //console.log("withAuth session", session);
 
     //if our component has a custom option admin check if user is admin otherwise render access deny page
     if (options?.admin && !session.user.admin) {

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { getSession, signIn } from 'next-auth/client';
+import { getSession, signIn } from 'next-auth/react';
 import Loader from '../components/ui/Loader';
 
 export default function Cookies({ callbackUrl }) {

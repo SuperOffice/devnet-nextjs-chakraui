@@ -1,8 +1,9 @@
 import NextAuth from 'next-auth';
-import Providers from 'next-auth/providers';
+//import Providers from 'next-auth/providers';
 import { encrypt, decrypt } from '../../../utils/crypto';
 import refreshAccessToken from '../../../utils/refreshAccessToken';
 import axios from 'axios';
+import SuperOfficeProvider from '../../../lib/superoffice'
 
 // For more information on each option (and a full list of options) go to
 // https://next-auth.js.org/configuration/options
@@ -10,28 +11,11 @@ export default (req, res) => {
   return NextAuth(req, res, {
     // https://next-auth.js.org/configuration/providers
     providers: [
-      {
-        id: 'superoffice',
-        name: 'SuperOffice',
-        type: 'oauth',
-        version: '2.0',
-        scope: 'openid',
-        idToken: true,
-        params: {
-          grant_type: 'authorization_code',
-        },
-        accessTokenUrl: `https://${process.env.SUPEROFFICE_ENV}.superoffice.com/login/common/oauth/tokens`,
-        authorizationUrl: `https://${process.env.SUPEROFFICE_ENV}.superoffice.com/login/common/oauth/authorize?response_type=code`,
-        async profile(profile, tokens) {
-          return {
-            id: profile['http://schemes.superoffice.net/identity/associateid'],
-            name: profile['http://schemes.superoffice.net/identity/initials'],
-            email: profile['http://schemes.superoffice.net/identity/email'],
-          };
-        },
+      SuperOfficeProvider({
         clientId: process.env.SUPEROFFICE_ID,
         clientSecret: process.env.SUPEROFFICE_SECRET,
-      },
+        environment: process.env.SUPEROFFICE_ENV,
+      }),
     ],
 
     // Database optional. MySQL, Maria DB, Postgres and MongoDB are supported.
@@ -101,82 +85,60 @@ export default (req, res) => {
     callbacks: {
       // async signIn(user, account, profile) { return true },
       // async redirect(url, baseUrl) { return baseUrl },
-      jwt: async (token, user, account, profile, isNewUser) => {
-        if (account && profile) {
+      jwt: async ({ token, user, account, profile, isNewUser }) => {     
+
+        if(account) {          
+          
+          // set encrypted tokens into the token object
+          // token will be passed to session callback
+
           token.accessToken = encrypt(
-            account.accessToken,
+            account.access_token,
             process.env.ACCESS_TOKEN_IV,
             process.env.ACCESS_TOKEN_SECRET
           );
-          token.accessTokenExpires = Date.now() + account.expires_in * 1000;
           token.refreshToken = encrypt(
             account.refresh_token,
             process.env.REFRESH_TOKEN_IV,
             process.env.REFRESH_TOKEN_SECRET
-          );
-
-          token.env = process.env.SUPEROFFICE_ENV;
-          token.ctx = profile['http://schemes.superoffice.net/identity/ctx'];
-          token.webApiUrl =
-            profile['http://schemes.superoffice.net/identity/webapi_url'];
-          token.associateId =
-            profile['http://schemes.superoffice.net/identity/associateid'];
-          token.admin =
-            profile[
-              'http://schemes.superoffice.net/identity/is_administrator'
-            ] === 'True';
-          token.company =
-            profile['http://schemes.superoffice.net/identity/company_name'];
-          token.initials =
-            profile['http://schemes.superoffice.net/identity/initials'];
+            );
+            
+          // set token expiration time 
+          // TODO: double check this does what it's supposed to do.
+          token.accessTokenExpires = Date.now() + account.expires_in * 1000;
         }
 
-        // Return previous token if the access token has not expired yet
-        if (Date.now() < token.accessTokenExpires) {
-          return token;
+        if(profile)
+        {
+          // normally the profile details would be stored in a DB
+          // set desirable profile properties into the token
+          // token will be passed to session callback
+          token.restUrl           = profile.restUrl        ;
+          token.ctx               = profile.customerId     ;
+          token.env               = profile.env            ;
+          token.isAdmin           = profile.isAdmin        ;
+          token.contactId         = profile.contactId      ;
+          token.personId          = profile.personId       ;
+          token.groupId           = profile.groupId        ;
+          token.secondaryGroupIds = profile.secondaryGroups;
+          token.roleId            = profile.roleId         ;
+          token.initials          = profile.initials       ;
         }
-
-        // Access token has expired, try to update it
-        return refreshAccessToken(token);
+        return token;
       },
 
-      session: async (session, token) => {
-        if (token) {
-          if (Date.now() >= token.accessTokenExpires) {
-            token = refreshAccessToken(token);
-          }
+      session: async ({ session, token, user }) => {
 
-          session.error = token.error;
-          session.env = token.env;
-          session.ctx = token.ctx;
-          session.user.admin = token.admin;
-          session.user.company = token.company;
-          session.user.initials = token.initials;
-
-          await axios
-            .get(
-              `https://${token.env}.superoffice.com/${token.ctx}/api/v1/User/currentPrincipal`,
-              {
-                headers: {
-                  Authorization: `Bearer ${decrypt(
-                    token.accessToken,
-                    process.env.ACCESS_TOKEN_IV,
-                    process.env.ACCESS_TOKEN_SECRET
-                  )}`,
-                },
-              }
-            )
-            .then((res) => {
-              session.user.fullname = res.data.FullName;
-              //add more user data you want to persist in session - https://community.superoffice.com/documentation/sdk/SO.NetServer.Web.Services/html/v1User_GetCurrentPrincipal.htm
-            })
-            .catch((err) => {
-              console.log("Error getting principal.")
-              console.log(err);
-              session.user.fullname = 'User';
-            });
-        }
-
+        if(token) {
+          // set desirable profile/token properties 
+          // into session (viewable client side)
+          session.restUrl       = token.restUrl  ;
+          session.ctx           = token.ctx      ;
+          session.env           = token.env      ;
+          session.user.admin    = token.isAdmin  ;
+          session.user.company  = token.contactId;
+          session.user.initials = token.initials ;
+        }     
         return session;
       },
     },

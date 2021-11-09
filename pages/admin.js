@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/client';
+import { useSession } from 'next-auth/react';
 import withAuth from '../hocs/withAuth';
 import LayoutAdmin from '../components/layouts/Admin';
 import {
@@ -38,7 +38,8 @@ let panelData = {
 };
 
 function Admin({ isInstalled, webPanelId }) {
-  const [session] = useSession();
+  const { data: session, status } = useSession()
+
   const toast = useToast();
 
   const [loading, setLoading] = useState(true);
@@ -201,7 +202,7 @@ function Admin({ isInstalled, webPanelId }) {
         alignItems="center"
       >
         <Box mb={16}>
-          <Heading size="lg">Hello 👋 {session.user.initials}</Heading>
+          <Heading size="lg">Hello 👋 {session.user.name}</Heading>
         </Box>
         <Box mb={16}>
           {loading ? (

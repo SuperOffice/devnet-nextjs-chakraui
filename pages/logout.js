@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { getSession, signOut } from 'next-auth/client';
+import { getSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { Center, Stack, Heading, Text, Button } from '@chakra-ui/react';
 
